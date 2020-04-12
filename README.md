@@ -6,18 +6,16 @@ The objective of this work is to develop software to simulate real-time scheduli
 
 ### Compilation
 
-    * `%gnat% make -g -O0 -Ipackages exemple`
+* `%gnat% make -g -O0 -Ipackages exemple`
 
 ### Start
 
-    * `%gdb% exemple`
-    * `(gdb) run`
+* `%gdb% exemple`
+* `(gdb) run`
 
 ### Clean
 
-    * `rm b* *.exe *.o *.ali`
-
-## Author
+* `rm b* *.exe *.o *.ali`
 
 ## Authors
 
