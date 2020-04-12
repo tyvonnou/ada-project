@@ -1,0 +1,25 @@
+# ADA Project
+
+The objective of this work is to develop software to simulate real-time scheduling algorithms.
+
+## Commands
+
+### Compilation
+
+    * `%gnat% make -g -O0 -Ipackages exemple`
+
+### Start
+
+    * `%gdb% exemple`
+    * `(gdb) run`
+
+### Clean
+
+    * `rm b* *.exe *.o *.ali`
+
+## Author
+
+## Authors
+
+* [Théo Yvonnou](https://github.com/tyvonnou)
+* [Kylian Anchyse](https://github.com/anchyseK)
