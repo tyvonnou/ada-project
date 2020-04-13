@@ -7,13 +7,21 @@ with my_subprograms; use my_subprograms;
 procedure example is
 
 begin
-   -- Creation des taches
-   user_level_scheduler.new_user_level_task (id1, 5, 1, T1'Access);
-   user_level_scheduler.new_user_level_task (id2, 10, 3, T2'Access);
-   user_level_scheduler.new_user_level_task (id3, 30, 8, T3'Access);
+   ---- Creation des taches // RM
+   -- user_level_scheduler.new_user_level_task (id1, 5, 1, 0, T1'Access);
+   -- user_level_scheduler.new_user_level_task (id2, 10, 3, 0, T2'Access);
+   -- user_level_scheduler.new_user_level_task (id3, 30, 8, 0, T3'Access);
 
-   -- ordonnancement selon RM
-   rate_monotonic_schedule (29);
+   ---- ordonnancement selon RM
+   -- rate_monotonic_schedule (29);
+
+   -- Creation des taches // REDF
+   user_level_scheduler.new_user_level_task (id1, 20, 3, 7, T1'Access);
+   user_level_scheduler.new_user_level_task (id2, 5, 2, 4, T2'Access);
+   user_level_scheduler.new_user_level_task (id3, 10, 2, 8, T3'Access);
+
+   -- ordonnancement selon EDF
+   edf_schedule (19);
    abort_tasks;
 
 end example;

@@ -18,6 +18,7 @@ package body user_level_tasks is
             user_level_scheduler.set_task_status (id, task_pended);
             executed_capacity := my_tcb.capacity;
          end if;
+        
          accept release_processor;
       end loop;
    end user_level_task;
