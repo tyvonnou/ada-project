@@ -20,4 +20,4 @@ The objective of this work is to develop software to simulate real-time scheduli
 ## Authors
 
 * [Théo Yvonnou](https://github.com/tyvonnou)
-* [Kylian Anchyse](https://github.com/anchyseK)
+* [Kilian Anchyse](https://github.com/anchyseK)
