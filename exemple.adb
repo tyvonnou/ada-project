@@ -15,13 +15,13 @@ begin
    ---- ordonnancement selon RM
    -- rate_monotonic_schedule (29);
 
-   -- Creation des taches // REDF
-   user_level_scheduler.new_user_level_task (id1, 20, 3, 7, T1'Access);
-   user_level_scheduler.new_user_level_task (id2, 5, 2, 4, T2'Access);
-   user_level_scheduler.new_user_level_task (id3, 10, 2, 8, T3'Access);
+   -- Creation des taches // EDF
+   user_level_scheduler.new_user_level_task_aperiodic (id1, 3, 7, T1'Access);
+   user_level_scheduler.new_user_level_task_periodic (id2, 5, 2, 4, T2'Access);
+   user_level_scheduler.new_user_level_task_sporadic (id3, 2, 15, T3'Access);
 
    -- ordonnancement selon EDF
-   edf_schedule (19);
+   edf_schedule (29);
    abort_tasks;
 
 end example;
