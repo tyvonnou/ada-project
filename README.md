@@ -2,20 +2,24 @@
 
 The objective of this work is to develop software to simulate real-time scheduling algorithms.
 
-## Commands
+## Compilation
 
-### Compilation
+* `gnat make -g -O0 -Ipackages exemple`
 
-* `%gnat% make -g -O0 -Ipackages exemple`
+## Start
 
-### Start
-
-* `%gdb% exemple`
+* `gdb exemple`
 * `(gdb) run`
 
-### Clean
+## Clean
+
+### Windows
 
 * `rm b* *.exe *.o *.ali`
+
+### Linux
+
+* `rm b* exemple *.o *.ali`
 
 ## Authors
 
