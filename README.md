@@ -8,8 +8,14 @@ The objective of this work is to develop software to simulate real-time scheduli
 
 ## Start
 
+### Using gdb
+
 * `gdb exemple`
 * `(gdb) run`
+
+### Without gdb
+
+* `./exemple`
 
 ## Clean
 
