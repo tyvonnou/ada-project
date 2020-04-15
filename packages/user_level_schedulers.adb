@@ -85,43 +85,28 @@ package body user_level_schedulers is
       --
       loop
 
-        -- Find the next task to run
-        --
+         -- Init params 
          no_ready_task   := True;
          smallest_deadline := Integer'Last;
+
+         -- Set the deadline for sporadic task 
+         for i in 1 .. user_level_scheduler.get_number_of_task loop
+            a_tcb := user_level_scheduler.get_tcb (i);
+            if (a_tcb.deadline = -1) then
+               user_level_scheduler.set_tcb_deadline(i, duration_in_time_unit);
+            end if;
+         end loop;
+              
+         -- Find the next task to run 
+         --
          for i in 1 .. user_level_scheduler.get_number_of_task loop
             a_tcb := user_level_scheduler.get_tcb (i);
             if (a_tcb.status = task_ready) then
                no_ready_task := False;
-
-               -- Set the deadline for sporadic task
-               if (a_tcb.deadline = -1) then
-                  a_tcb.deadline := duration_in_time_unit;
-               end if;
-
                -- Select the smallest Deadline
                if a_tcb.deadline < smallest_deadline then
-                  -- If not sporadic task 
-                  if (a_tcb.minimum_delay = -1) then
                      smallest_deadline := a_tcb.deadline;
                      elected_task := a_tcb;
-                  end if;
-                  -- If sporadic task
-                  if (a_tcb.minimum_delay /= -1) then
-                     -- If never run
-                     if (a_tcb.last_run = 0) then
-                        smallest_deadline := a_tcb.deadline;
-                        elected_task := a_tcb;
-                     else
-                     -- If minimum delay is reached 
-                     if (user_level_scheduler.get_current_time - a_tcb.last_run >= a_tcb.minimum_delay) then
-                        smallest_deadline := a_tcb.deadline;
-                        elected_task := a_tcb;
-                     end if;
-
-                     end if;
-                    
-                  end if;
                end if;
             end if;
          end loop;
@@ -131,32 +116,39 @@ package body user_level_schedulers is
          if not no_ready_task then
             elected_task.the_task.wait_for_processor;
             elected_task.the_task.release_processor;
-            Put_Line(Integer'Image(current_capacity));
-
+            
+            -- If first run of one execution
             if (current_capacity = 0) then
-               if (elected_task.minimum_delay /= -1) then
-                for i in 1 .. user_level_scheduler.get_number_of_task loop
-                  a_tcb := user_level_scheduler.get_tcb (i);
-                     if user_level_scheduler.compare_task(a_tcb, elected_task) then
-                        user_level_scheduler.set_tcb_last_run(i, user_level_scheduler.get_current_time);
-                        Put_Line(Integer'Image(elected_task.last_run));
-                     end if;
-                  end loop;
+               -- And if is a sporadic task
+               if (elected_task.minimum_delay /= -1) then             
+                        -- Change the last run of the task
+                        for i in 1 .. user_level_scheduler.get_number_of_task loop
+                           a_tcb := user_level_scheduler.get_tcb (i);
+                           if (a_tcb = elected_task) then
+                              user_level_scheduler.set_tcb_last_run(i, user_level_scheduler.get_current_time);
+                              elected_task.last_run := user_level_scheduler.get_current_time;
+                           end if;
+                        end loop;
                end if;
-
             end if;
-                       
+
+            -- Prepare the next run
             current_capacity := current_capacity + 1;
 
+            -- If is the last run
             if (current_capacity = elected_task.capacity) then
+               -- And if is not a sporadic task
                if (elected_task.minimum_delay = -1 ) then
-                  for i in 1 .. user_level_scheduler.get_number_of_task loop
-                     a_tcb := user_level_scheduler.get_tcb (i);
-                     if user_level_scheduler.compare_task(a_tcb, elected_task) then
-                        user_level_scheduler.set_tcb_deadline(i, elected_task.deadline + elected_task.period);
-                     end if;
-                  end loop;
+                        -- Change the deadline
+                        for i in 1 .. user_level_scheduler.get_number_of_task loop
+                           a_tcb := user_level_scheduler.get_tcb (i);
+                           if (a_tcb = elected_task) then
+                              user_level_scheduler.set_tcb_deadline(i, elected_task.deadline + elected_task.period);
+                              elected_task.deadline := elected_task.deadline + elected_task.period;
+                           end if;
+                        end loop;
                end if;
+               -- Reset the capacity
                current_capacity := 0;
             end if;  
 
@@ -202,15 +194,12 @@ package body user_level_schedulers is
                      ("Task" &
                         Integer'Image (i) &
                         " is released at time " &
-                        Integer'Image (user_level_scheduler.get_current_time) & " " & Integer'Image (a_tcb.last_run) & " " & Integer'Image (a_tcb.minimum_delay));
+                        Integer'Image (user_level_scheduler.get_current_time));
                      user_level_scheduler.set_task_status (i, task_ready);
                   end if;
                end if;
             end if;
          end loop;
-
-         
-
       end loop;
 
    end edf_schedule;
@@ -234,20 +223,6 @@ package body user_level_schedulers is
       begin
          tcbs (id).status := s;
       end set_task_status;
-
-      function compare_task (task1 : tcb; task2 : tcb) return Boolean is
-      begin
-         if (task1.period = task2.period) then  
-            if (task1.deadline = task2.deadline) then
-               if (task1.minimum_delay = task2.minimum_delay) then
-                  if (task1.capacity = task2.capacity) then
-                     return true;
-                  end if;
-               end if;
-            end if;
-         end if;
-         return false;
-      end compare_task;
 
       function get_tcb (id : Integer) return tcb is
       begin

@@ -36,7 +36,6 @@ package user_level_schedulers is
       procedure set_tcb_last_run (id : Integer; last_run : Integer);
       -- Get task with id
       function get_tcb (id : Integer) return tcb;
-      function compare_task (task1 : tcb; task2 : tcb) return Boolean;
       -- All kind of task
       procedure new_user_level_task_periodic
         (id         : in out Integer;
