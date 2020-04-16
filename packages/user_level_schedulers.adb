@@ -298,8 +298,7 @@ package body user_level_schedulers is
                   Put_Line ("Task" & Integer'Image (i) & " is released at time "
                      & Integer'Image (user_level_scheduler.get_current_time));
                   user_level_scheduler.set_task_status (i, task_ready);                  
-                  user_level_scheduler.set_task_deadline (i,
-                     a_tcb.deadline / (user_level_scheduler.get_current_time / a_tcb.period) + a_tcb.deadline);
+                  user_level_scheduler.set_task_deadline (i, a_tcb.deadline + a_tcb.period);
                end if;
 
             else
@@ -315,7 +314,7 @@ package body user_level_schedulers is
                   if a_tcb.start < user_level_scheduler.get_current_time
                      and a_tcb.status = task_pended
                   then
-                     user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time + a_tcb.minimum_delay);
+                     user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time - a_tcb.capacity + a_tcb.minimum_delay);
                   end if;
                end if;
             
