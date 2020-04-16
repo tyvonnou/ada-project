@@ -8,6 +8,7 @@ package body user_level_schedulers is
         (id         : in out Integer;
          period     : in Integer;
          capacity   : in Integer;
+         deadline   : in Integer;
          subprogram : in run_subprogram)
       is
          a_tcb : tcb;
@@ -37,7 +38,7 @@ package body user_level_schedulers is
          a_tcb.start    := -1;
          a_tcb.period   := period;
          a_tcb.capacity := capacity;
-         a_tcb.deadline := period;
+         a_tcb.deadline := deadline;
          a_tcb.minimum_delay := -1;
          tcbs (number_of_task) := a_tcb;
          id := number_of_task;
@@ -116,7 +117,7 @@ package body user_level_schedulers is
          number_of_task := number_of_task + 1;
          a_tcb.the_task := new user_level_task (number_of_task, subprogram);
          a_tcb.the_type := task_sporadic;
-         a_tcb.status   := task_pended;
+         a_tcb.status   := task_ready;
          a_tcb.start    := 0;
          a_tcb.period   := -1;
          a_tcb.capacity := capacity;
@@ -207,26 +208,29 @@ package body user_level_schedulers is
          user_level_scheduler.next_time;
          exit when user_level_scheduler.get_current_time > duration_in_time_unit;
 
-         -- Release periodic tasks
+         -- Check the scheduling and release tasks
          for i in 1 .. user_level_scheduler.get_number_of_task loop
             a_tcb := user_level_scheduler.get_tcb (i);
-            if user_level_scheduler.get_current_time mod a_tcb.period = 0 then
-               if (a_tcb.status = task_pended) then   
-                  -- Task did not miss its deadline
-                  --            
-                  Put_Line ("Task" & Integer'Image (i) & " is released at time "
-                     & Integer'Image (user_level_scheduler.get_current_time));
-                  user_level_scheduler.set_task_status (i, task_ready);
-               else
-                  -- Task misses its deadline
-                  --
-                  Put_Line ("Task" & Integer'Image (i) & " misses its deadline at time " &
-                     Integer'Image (user_level_scheduler.get_current_time));
-                  New_Line;
-                  Put_Line ("The simulation is not schedulable");
-                  return;
-               end if;
+
+            -- Check for misses deadlines
+            if user_level_scheduler.get_current_time = a_tcb.deadline
+               and a_tcb.status = task_ready
+            then
+               Put_Line ("Task" & Integer'Image (i) & " misses its deadline at time " &
+                  Integer'Image (user_level_scheduler.get_current_time));
+               New_Line;
+               Put_Line ("The simulation is not schedulable");
+               return;
             end if;
+
+            -- Release tasks
+            if user_level_scheduler.get_current_time mod a_tcb.period = 0 then
+               Put_Line ("Task" & Integer'Image (i) & " is released at time "
+                  & Integer'Image (user_level_scheduler.get_current_time));
+               user_level_scheduler.set_task_status (i, task_ready);
+               user_level_scheduler.set_task_deadline (i, user_level_scheduler.get_current_time + a_tcb.deadline);
+            end if;
+
          end loop;
 
       end loop;
@@ -244,20 +248,13 @@ package body user_level_schedulers is
       -- Loop on tcbs, and select tasks which are ready and which have smallest deadlines
       --
       loop
-         -- Awakens the tasks that need to be started
-         for i in 1 .. user_level_scheduler.get_number_of_task loop
-            a_tcb := user_level_scheduler.get_tcb (i);
-            if (a_tcb.start = user_level_scheduler.get_current_time) then
-               user_level_scheduler.set_task_status (i, task_ready);
-            end if;
-         end loop;
 
          -- Find the next task to run
          no_ready_task   := True;
          smallest_deadline := Integer'Last;
          for i in 1 .. user_level_scheduler.get_number_of_task loop
             a_tcb := user_level_scheduler.get_tcb (i);
-            if (a_tcb.status = task_ready) then
+            if a_tcb.status = task_ready then
                no_ready_task := False;
                if a_tcb.deadline <= smallest_deadline then
                   smallest_deadline := a_tcb.deadline;
@@ -271,8 +268,7 @@ package body user_level_schedulers is
             elected_task.the_task.wait_for_processor;
             elected_task.the_task.release_processor;
          else
-            Put_Line
-              ("No task to run at time " &
+            Put_Line ("No task to run at time " &
                Integer'Image (user_level_scheduler.get_current_time));
          end if;
 
@@ -280,44 +276,51 @@ package body user_level_schedulers is
          user_level_scheduler.next_time;
          exit when user_level_scheduler.get_current_time > duration_in_time_unit;
 
-         -- Release tasks
+         -- Check the scheduling and release tasks
          for i in 1 .. user_level_scheduler.get_number_of_task loop
             a_tcb := user_level_scheduler.get_tcb (i);
 
-            if (a_tcb.the_type = task_sporadic) then
-               -- Sporadic tasks 
-               --
-               if (a_tcb.start < user_level_scheduler.get_current_time)
-                  and (a_tcb.status = task_pended)
-               then
-                  -- Completed sporadic tasks
-                  --
-                  Put_Line ("Task" & Integer'Image (i) & " is released at time " &
-                     Integer'Image (user_level_scheduler.get_current_time));
-                  user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time + a_tcb.minimum_delay);
-               end if;
-            elsif user_level_scheduler.get_current_time mod a_tcb.deadline = 0 then
-               -- Other tasks that have reached their deadlines
-               --
-               if (a_tcb.status = task_pended) then
-                  -- Task did not miss its deadline
-                  --
-                  Put_Line ("Task" & Integer'Image (i) & " is released at time " &
-                     Integer'Image (user_level_scheduler.get_current_time));
-                  if (a_tcb.the_type = task_periodic) then
-                     user_level_scheduler.set_task_status (i, task_ready);
-                     user_level_scheduler.set_task_deadline (i, a_tcb.deadline + a_tcb.period);
-                  end if;
-               else
-                  -- Task misses its deadline
-                  --
-                  Put_Line ("Task" & Integer'Image (i) & " misses its deadline at time " &
-                     Integer'Image (user_level_scheduler.get_current_time));
-                  New_Line;
-                  Put_Line ("The simulation is not schedulable");
-                  return;
-               end if;
+            -- Check for misses deadlines
+            if user_level_scheduler.get_current_time = a_tcb.deadline
+               and a_tcb.status = task_ready
+            then
+               Put_Line ("Task" & Integer'Image (i) & " misses its deadline at time " &
+                  Integer'Image (user_level_scheduler.get_current_time));
+               New_Line;
+               Put_Line ("The simulation is not schedulable");
+               return;
             end if;
+
+            -- Release tasks
+            if a_tcb.the_type = task_periodic then
+               -- Release periodic tasks
+               if user_level_scheduler.get_current_time mod a_tcb.period = 0 then
+                  Put_Line ("Task" & Integer'Image (i) & " is released at time "
+                     & Integer'Image (user_level_scheduler.get_current_time));
+                  user_level_scheduler.set_task_status (i, task_ready);                  
+                  user_level_scheduler.set_task_deadline (i,
+                     a_tcb.deadline / (user_level_scheduler.get_current_time / a_tcb.period) + a_tcb.deadline);
+               end if;
+
+            else
+               -- Release aperiodic and sporodic tasks
+               if a_tcb.start = user_level_scheduler.get_current_time then
+                  Put_Line ("Task" & Integer'Image (i) & " is released at time "
+                     & Integer'Image (user_level_scheduler.get_current_time));
+                  user_level_scheduler.set_task_status (i, task_ready);
+               end if;
+
+               -- If sporadic task completed, set the next start
+               if a_tcb.the_type = task_sporadic then
+                  if a_tcb.start < user_level_scheduler.get_current_time
+                     and a_tcb.status = task_pended
+                  then
+                     user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time + a_tcb.minimum_delay);
+                  end if;
+               end if;
+            
+            end if;
+
          end loop;
 
       end loop;

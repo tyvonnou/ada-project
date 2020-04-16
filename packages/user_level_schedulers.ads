@@ -41,6 +41,7 @@ package user_level_schedulers is
         (id         : in out Integer;
          period     : in Integer;
          capacity   : in Integer;
+         deadline   : in Integer;
          subprogram : in run_subprogram);
       -- Création d'une tâche apériodique
       procedure new_user_level_task_aperiodic

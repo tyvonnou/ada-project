@@ -32,22 +32,31 @@ package body my_subprograms is
          Integer'Image (user_level_scheduler.get_current_time));
    end T3;
 
-   procedure T4 is
+   procedure TA1 is
    begin
       Put_Line
         ("Task" &
-         Integer'Image (id4) &
+         Integer'Image (ida1) &
          " is running at time " &
          Integer'Image (user_level_scheduler.get_current_time));
-   end T4;
+   end TA1;
 
-   procedure T5 is
+   procedure TA2 is
    begin
       Put_Line
         ("Task" &
-         Integer'Image (id5) &
+         Integer'Image (ida2) &
          " is running at time " &
          Integer'Image (user_level_scheduler.get_current_time));
-   end T5;
+   end TA2;
+
+   procedure TS1 is
+   begin
+      Put_Line
+        ("Task" &
+         Integer'Image (ids1) &
+         " is running at time " &
+         Integer'Image (user_level_scheduler.get_current_time));
+   end TS1;
 
 end my_subprograms;
