@@ -1,4 +1,5 @@
-with Text_IO; use Text_IO;
+with Text_IO;                 use Text_IO;
+with random_number_generator; use random_number_generator;
 
 package body user_level_schedulers is
 
@@ -31,17 +32,17 @@ package body user_level_schedulers is
             raise PERIOD_NULL_ERROR with "Capacity incorrect !";
          end if;
 
-         number_of_task := number_of_task + 1;
-         a_tcb.the_task := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type := task_periodic;
-         a_tcb.status   := task_ready;
-         a_tcb.start    := -1;
-         a_tcb.period   := period;
-         a_tcb.capacity := capacity;
-         a_tcb.deadline := deadline;
-         a_tcb.minimum_delay := -1;
+         number_of_task        := number_of_task + 1;
+         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type        := task_periodic;
+         a_tcb.status          := task_ready;
+         a_tcb.start           := -1;
+         a_tcb.period          := period;
+         a_tcb.capacity        := capacity;
+         a_tcb.deadline        := deadline;
+         a_tcb.awake_percent   := -1;
          tcbs (number_of_task) := a_tcb;
-         id := number_of_task;
+         id                    := number_of_task;
 
       exception
          when CAPACITY_NULL_ERROR => put_line("The capacity can not be equal to 0 !") ; 
@@ -76,17 +77,17 @@ package body user_level_schedulers is
             raise START_NEGATIVE_ERROR with "Start incorrect !";
          end if;
 
-         number_of_task := number_of_task + 1;
-         a_tcb.the_task := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type := task_aperiodic;
-         a_tcb.status   := task_pended;
-         a_tcb.start    := start;
-         a_tcb.period   := -1;
-         a_tcb.capacity := capacity;
-         a_tcb.deadline := deadline;
-         a_tcb.minimum_delay := -1;
+         number_of_task        := number_of_task + 1;
+         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type        := task_aperiodic;
+         a_tcb.status          := task_pended;
+         a_tcb.start           := start;
+         a_tcb.period          := -1;
+         a_tcb.capacity        := capacity;
+         a_tcb.deadline        := start + deadline;
+         a_tcb.awake_percent   := -1;
          tcbs (number_of_task) := a_tcb;
-         id := number_of_task;
+         id                    := number_of_task;
       
       exception
          when CAPACITY_NULL_ERROR => put_line("The capacity can not be equal to 0 !") ;
@@ -98,6 +99,7 @@ package body user_level_schedulers is
         (id            : in out Integer;
          minimum_delay : in Integer;
          capacity      : in Integer;
+         awake_percent : in Integer;
          subprogram    : in run_subprogram)
       is
          CAPACITY_NULL_ERROR : exception;
@@ -114,17 +116,17 @@ package body user_level_schedulers is
             raise CAPACITY_NULL_ERROR with "Capacity incorrect !";
          end if;
 
-         number_of_task := number_of_task + 1;
-         a_tcb.the_task := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type := task_sporadic;
-         a_tcb.status   := task_ready;
-         a_tcb.start    := 0;
-         a_tcb.period   := -1;
-         a_tcb.capacity := capacity;
-         a_tcb.deadline := Integer'Last;
-         a_tcb.minimum_delay := minimum_delay;
+         number_of_task        := number_of_task + 1;
+         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type        := task_sporadic;
+         a_tcb.status          := task_ready;
+         a_tcb.start           := 0;
+         a_tcb.period          := minimum_delay;
+         a_tcb.capacity        := capacity;
+         a_tcb.deadline        := minimum_delay;
+         a_tcb.awake_percent   := awake_percent;
          tcbs (number_of_task) := a_tcb;
-         id := number_of_task;
+         id                    := number_of_task;
       
       exception
          when CAPACITY_NULL_ERROR => put_line("The capacity can not be equal to 0 !") ; 
@@ -256,7 +258,7 @@ package body user_level_schedulers is
             a_tcb := user_level_scheduler.get_tcb (i);
             if a_tcb.status = task_ready then
                no_ready_task := False;
-               if a_tcb.deadline <= smallest_deadline then
+               if a_tcb.deadline < smallest_deadline then
                   smallest_deadline := a_tcb.deadline;
                   elected_task := a_tcb;
                end if;
@@ -307,14 +309,19 @@ package body user_level_schedulers is
                   Put_Line ("Task" & Integer'Image (i) & " is released at time "
                      & Integer'Image (user_level_scheduler.get_current_time));
                   user_level_scheduler.set_task_status (i, task_ready);
+                  -- Set the new deadline for sporadic tasks
+                  if a_tcb.the_type = task_sporadic then
+                     user_level_scheduler.set_task_deadline (i, a_tcb.start + a_tcb.period);
+                  end if;
                end if;
 
-               -- If sporadic task completed, set the next start
+               -- If sporadic task completed and the random choice to wake her up, set the next start
                if a_tcb.the_type = task_sporadic then
                   if a_tcb.start < user_level_scheduler.get_current_time
-                     and a_tcb.status = task_pended
+                     and random_number_generator.generate_random_number (100) < a_tcb.awake_percent
                   then
-                     user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time - a_tcb.capacity + a_tcb.minimum_delay);
+                     Put_Line ("HASARD AU TEMPS " & Integer'Image (user_level_scheduler.get_current_time));
+                     user_level_scheduler.set_task_start (i, user_level_scheduler.get_current_time + a_tcb.period);
                   end if;
                end if;
             

@@ -18,14 +18,17 @@ package user_level_schedulers is
       -- L'unité de temps à laquelle la tâche doit se réveiller
       -- (exclusif aux tâches apériodiques et sporadiques, -1 sinon)
       start    : Integer;
-      -- La période d'exécution (exclusif aux tâches périodiques, -1 sinon)
+      -- La période d'exécution (exclusif aux tâches périodiques,
+      -- délai minimum entre deux occurences pour les tâches sporadiques,
+      -- -1 sinon)
       period   : Integer;
       -- Le nombre d'unités à exécuter pendant la période 
       capacity : Integer;
       -- L'unité de temps limite pour l'execution de la tâche
       deadline : Integer;
-      -- Délai minimum entre deux occurrences (exclusif aux tâches sporadiques, -1 sinon)
-      minimum_delay : Integer;
+      -- Pourcentage de chance de réveiller la tâche
+      -- (exclusif aux tâches sporadiques, -1 sinon)
+      awake_percent : Integer;
 
    end record;
 
@@ -55,6 +58,7 @@ package user_level_schedulers is
          (id              : in out Integer;
           minimum_delay   : in Integer;
           capacity        : in Integer;
+          awake_percent   : in Integer;
           subprogram      : in run_subprogram);
 
 
