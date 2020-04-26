@@ -8,26 +8,35 @@ package user_level_schedulers is
    type task_type is (task_periodic, task_aperiodic, task_sporadic);
    type task_status is (task_ready, task_pended);
 
+   subtype Percent is Integer range 0 .. 100;
+
    type tcb is record
       -- La tâche 
       the_task : user_level_task_ptr;
+
       -- Le type de la tâche (périodique, apériodique ou sporadique)
       the_type : task_type;
+
       -- Le statut de la tâche (prêt ou en suspend)
       status   : task_status;
+
       -- L'unité de temps à laquelle la tâche doit se réveiller
       -- (exclusif aux tâches apériodiques et sporadiques, -1 sinon)
       start    : Integer;
+
       -- La période d'exécution (exclusif aux tâches périodiques,
       -- délai minimum entre deux occurences pour les tâches sporadiques,
       -- -1 sinon)
       period   : Integer;
+
       -- Le nombre d'unités à exécuter pendant la période 
-      capacity : Integer;
+      capacity : Positive;
+
       -- L'unité de temps limite pour l'execution de la tâche
-      deadline : Integer;
+      deadline : Positive;
+
       -- Pourcentage de chance de réveiller la tâche
-      -- (exclusif aux tâches sporadiques, -1 sinon)
+      -- (exclusif aux tâches sporadiques, 0 sinon)
       awake_percent : Integer;
 
    end record;
@@ -42,24 +51,26 @@ package user_level_schedulers is
       -- Création d'une tâche périodique
       procedure new_user_level_task_periodic
         (id         : in out Integer;
-         period     : in Integer;
-         capacity   : in Integer;
-         deadline   : in Integer;
+         period     : in Positive;
+         capacity   : in Positive;
+         deadline   : in Positive;
          subprogram : in run_subprogram);
+      
       -- Création d'une tâche apériodique
       procedure new_user_level_task_aperiodic
         (id         : in out Integer;
-         start      : in Integer;   
-         capacity   : in Integer;
-         deadline   : in Integer;
+         start      : in Natural;   
+         capacity   : in Positive;
+         deadline   : in Positive;
          subprogram : in run_subprogram);
+      
       -- Création d'une tâche sporadique
       procedure new_user_level_task_sporadic
-         (id              : in out Integer;
-          minimum_delay   : in Integer;
-          capacity        : in Integer;
-          awake_percent   : in Integer;
-          subprogram      : in run_subprogram);
+        (id              : in out Integer;
+         period          : in Positive;
+         capacity        : in Positive;
+         awake_percent   : in Percent;
+         subprogram      : in run_subprogram);
 
 
       -- Fonctions spécifiques à une tâches
@@ -85,11 +96,17 @@ package user_level_schedulers is
       -- Passe la simulation à l'unité de temps suivante
       procedure next_time;
 
+      -- Fonctions vérifiant des trucs (Description à améliorer)
+      --
+      procedure check_tasks_limit;
+
    private
       -- Tableau contenant les différentes tâches
       tcbs           : tcb_type;
+
       -- Nombre de tâches de la simulation
       number_of_task : Integer := 0;
+
       -- Unité de temps actuelle
       current_time   : Integer := 0;
 
@@ -98,10 +115,6 @@ package user_level_schedulers is
    -- Fonctions pour l'utilisateur
    --
 
-   -- Ordonnancement selon l'algorithme Rate Motonic
-   procedure rate_monotonic_schedule (duration_in_time_unit : Integer);
-   -- Ordonnancement selon l'algorithme Earliets Deadline First
-   procedure earliest_deadline_first_schedule (duration_in_time_unit : Integer);
    -- Abandons de toutes les tâches courantes
    procedure abort_tasks;
 
