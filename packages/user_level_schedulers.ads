@@ -32,12 +32,27 @@ package user_level_schedulers is
       -- Le nombre d'unités à exécuter pendant la période 
       capacity : Positive;
 
+      -- La capacité restante de la tâche
+      executed_capacity : Integer;
+
       -- L'unité de temps limite pour l'execution de la tâche
       deadline : Positive;
 
       -- Pourcentage de chance de réveiller la tâche
-      -- (exclusif aux tâches sporadiques, 0 sinon)
+      -- (exclusif aux tâches sporadiques, -1 sinon)
       awake_percent : Integer;
+
+      -- 0 si la tâche est dans l'ensemble critique, 1 sinon
+      -- (exclusif à l'ordonnancement MUF)
+      criticality : Integer;
+
+      -- Priorité inversement proportionelle à la laxity minimum
+      -- (exclusif à l'ordonnancement MUF)
+      dynamic_priority : Integer;
+
+      -- Priorité définie par l'utilisateur. Plus la priorité est basse,
+      -- plus elle est prioritaire (exclusif à l'ordonnancement MUF)
+      user_priority : Natural;
 
    end record;
 
@@ -50,11 +65,12 @@ package user_level_schedulers is
 
       -- Création d'une tâche périodique
       procedure new_user_level_task_periodic
-        (id         : in out Integer;
-         period     : in Positive;
-         capacity   : in Positive;
-         deadline   : in Positive;
-         subprogram : in run_subprogram);
+        (id            : in out Integer;
+         period        : in Positive;
+         capacity      : in Positive;
+         deadline      : in Positive;
+         user_priority : in Natural;
+         subprogram    : in run_subprogram);
       
       -- Création d'une tâche apériodique
       procedure new_user_level_task_aperiodic
@@ -82,8 +98,14 @@ package user_level_schedulers is
       procedure set_task_status (id : Integer; s : task_status);
       -- Met à jour l'unité de temps d'éveil d'une tâche
       procedure set_task_start (id : Integer; start : Integer);
+      -- Met à jour la capacité restante d'une tâche
+      procedure set_task_executed_capacity (id : Integer; executed_capacity : Integer);
       -- Met à jour la deadline d'une tâche
       procedure set_task_deadline (id : Integer; deadline : Integer);
+      -- Met à jour la criticité d'une tâche
+      procedure set_task_criticality (id : Integer; criticality : Integer);
+      -- Met à jour la priorité d'une tâche
+      procedure set_task_dynamic_priority (id : Integer; dynamic_priority : Integer);
 
 
       -- Fonctions spécifiques au simulateur

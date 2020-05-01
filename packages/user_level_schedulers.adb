@@ -5,11 +5,12 @@ package body user_level_schedulers is
    protected body user_level_scheduler is
 
       procedure new_user_level_task_periodic
-        (id         : in out Integer;
-         period     : in Positive;
-         capacity   : in Positive;
-         deadline   : in Positive;
-         subprogram : in run_subprogram)
+        (id            : in out Integer;
+         period        : in Positive;
+         capacity      : in Positive;
+         deadline      : in Positive;
+         user_priority : in Natural;
+         subprogram    : in run_subprogram)
       is
          a_tcb : tcb;  
       begin
@@ -17,17 +18,21 @@ package body user_level_schedulers is
          check_tasks_limit;
 
          -- Define variables
-         number_of_task        := number_of_task + 1;
-         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type        := task_periodic;
-         a_tcb.status          := task_ready;
-         a_tcb.start           := -1;
-         a_tcb.period          := period;
-         a_tcb.capacity        := capacity;
-         a_tcb.deadline        := deadline;
-         a_tcb.awake_percent   := -1;
-         tcbs (number_of_task) := a_tcb;
-         id                    := number_of_task;
+         number_of_task          := number_of_task + 1;
+         a_tcb.the_task          := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type          := task_periodic;
+         a_tcb.status            := task_ready;
+         a_tcb.start             := -1;
+         a_tcb.period            := period;
+         a_tcb.capacity          := capacity;
+         a_tcb.executed_capacity := capacity;
+         a_tcb.deadline          := deadline;
+         a_tcb.awake_percent     := -1;
+         a_tcb.criticality       := 1;
+         a_tcb.dynamic_priority  := deadline - capacity;
+         a_tcb.user_priority     := user_priority;
+         tcbs (number_of_task)   := a_tcb;
+         id                      := number_of_task;
 
       exception
          when Constraint_Error =>
@@ -52,17 +57,21 @@ package body user_level_schedulers is
          check_tasks_limit;
 
          -- Define variables
-         number_of_task        := number_of_task + 1;
-         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type        := task_aperiodic;
-         a_tcb.status          := task_pended;
-         a_tcb.start           := start;
-         a_tcb.period          := -1;
-         a_tcb.capacity        := capacity;
-         a_tcb.deadline        := start + deadline;
-         a_tcb.awake_percent   := -1;
-         tcbs (number_of_task) := a_tcb;
-         id                    := number_of_task;
+         number_of_task          := number_of_task + 1;
+         a_tcb.the_task          := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type          := task_aperiodic;
+         a_tcb.status            := task_pended;
+         a_tcb.start             := start;
+         a_tcb.period            := -1;
+         a_tcb.capacity          := capacity;
+         a_tcb.executed_capacity := capacity;
+         a_tcb.deadline          := start + deadline;
+         a_tcb.awake_percent     := -1;
+         a_tcb.criticality       := 1;
+         a_tcb.dynamic_priority  := -1;
+         a_tcb.user_priority     := 0;
+         tcbs (number_of_task)   := a_tcb;
+         id                      := number_of_task;
       
       exception
          when Constraint_Error =>
@@ -87,17 +96,21 @@ package body user_level_schedulers is
          check_tasks_limit;
 
          -- Define variables
-         number_of_task        := number_of_task + 1;
-         a_tcb.the_task        := new user_level_task (number_of_task, subprogram);
-         a_tcb.the_type        := task_sporadic;
-         a_tcb.status          := task_ready;
-         a_tcb.start           := 0;
-         a_tcb.period          := period;
-         a_tcb.capacity        := capacity;
-         a_tcb.deadline        := period;
-         a_tcb.awake_percent   := awake_percent;
-         tcbs (number_of_task) := a_tcb;
-         id                    := number_of_task;
+         number_of_task          := number_of_task + 1;
+         a_tcb.the_task          := new user_level_task (number_of_task, subprogram);
+         a_tcb.the_type          := task_sporadic;
+         a_tcb.status            := task_ready;
+         a_tcb.start             := 0;
+         a_tcb.period            := period;
+         a_tcb.capacity          := capacity;
+         a_tcb.executed_capacity := capacity;
+         a_tcb.deadline          := period;
+         a_tcb.awake_percent     := awake_percent;
+         a_tcb.criticality       := 1;
+         a_tcb.dynamic_priority  := -1;
+         a_tcb.user_priority     := 0;
+         tcbs (number_of_task)   := a_tcb;
+         id                      := number_of_task;
       
       exception
          when Constraint_Error =>
@@ -123,10 +136,25 @@ package body user_level_schedulers is
          tcbs (id).start := start;
       end set_task_start;
 
+      procedure set_task_executed_capacity (id : Integer; executed_capacity : Integer)  is
+      begin
+         tcbs (id).executed_capacity := executed_capacity;
+      end set_task_executed_capacity;
+
       procedure set_task_deadline (id : Integer; deadline : Integer)  is
       begin
          tcbs (id).deadline := deadline;
       end set_task_deadline;
+
+      procedure set_task_criticality (id : Integer; criticality : Integer)  is
+      begin
+         tcbs (id).criticality := criticality;
+      end set_task_criticality;
+
+      procedure set_task_dynamic_priority (id : Integer; dynamic_priority : Integer)  is
+      begin
+         tcbs (id).dynamic_priority := dynamic_priority;
+      end set_task_dynamic_priority;
 
 
       function get_number_of_task return Integer is

@@ -20,25 +20,25 @@ begin
          Put_Line("Tâche 2 (Périodique) => Période  5, Capacité  1, Deadline  5");
          Put_Line("Tâche 3 (Périodique) => Période 10, Capacité  2, Deadline 10");
          New_Line;
-         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 29, T1'Access);
-         user_level_scheduler.new_user_level_task_periodic (id2, 5, 1, 5, T2'Access);
-         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 10, T3'Access);
+         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 29, 0, T1'Access);
+         user_level_scheduler.new_user_level_task_periodic (id2, 5, 1, 5, 0, T2'Access);
+         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 10, 0, T3'Access);
 
       when '2' =>
          Put_Line("Tâche 1 (Périodique) => Période 29, Capacité  7, Deadline 29");
          Put_Line("Tâche 2 (Périodique) => Période  5, Capacité  3, Deadline  5");
          Put_Line("Tâche 3 (Périodique) => Période 10, Capacité  2, Deadline 10");
          New_Line;
-         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 29, T1'Access);
-         user_level_scheduler.new_user_level_task_periodic (id2, 5, 3, 5, T2'Access);
-         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 10, T3'Access);
+         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 29, 0, T1'Access);
+         user_level_scheduler.new_user_level_task_periodic (id2, 5, 3, 5, 0, T2'Access);
+         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 10, 0, T3'Access);
 
       when '3' =>
          Put_Line("Tâche 1 (Périodique)  => Période 12, Capacité  5, Deadline 12");
          Put_Line("Tâche 2 (Apériodique) => Start    7, Capacité  1, Deadline  9");
          Put_Line("Tâche 3 (Apériodique) => Start   12, Capacité  3, Deadline 21");
          New_Line;
-         user_level_scheduler.new_user_level_task_periodic (id1, 12, 5, 12, T1'Access);
+         user_level_scheduler.new_user_level_task_periodic (id1, 12, 5, 12, 0, T1'Access);
          user_level_scheduler.new_user_level_task_aperiodic (ida1, 7, 1, 2, TA1'Access);
          user_level_scheduler.new_user_level_task_aperiodic (ida2, 12, 3, 9, TA2'Access);
 
@@ -47,9 +47,9 @@ begin
          Put_Line("Tâche 2 (Périodique) => Période  5, Capacité  1, Deadline  3");
          Put_Line("Tâche 3 (Périodique) => Période 10, Capacité  2, Deadline  8");
          New_Line;
-         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 25, T1'Access);
-         user_level_scheduler.new_user_level_task_periodic (id2, 5, 1, 3, T2'Access);
-         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 8, T3'Access);
+         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 25, 0, T1'Access);
+         user_level_scheduler.new_user_level_task_periodic (id2, 5, 1, 3, 0, T2'Access);
+         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 8, 0, T3'Access);
 
       when others =>
          Put_Line("Please, select a test ( 1 - 4 )");
