@@ -31,9 +31,9 @@ begin
          Put_Line("Tâche 3 (Périodique) => Période 12, Capacité  3, Deadline 12, Priorité 0");
          Put_Line("Tâche 4 (Périodique) => Période 15, Capacité  4, Deadline 15, Priorité 0");
          New_Line;
-         user_level_scheduler.new_user_level_task_periodic (id1, 29, 7, 29, 0, T1'Access);
-         user_level_scheduler.new_user_level_task_periodic (id2, 5, 3, 5, 0, T2'Access);
-         user_level_scheduler.new_user_level_task_periodic (id3, 10, 2, 10, 0, T3'Access);
+         user_level_scheduler.new_user_level_task_periodic (id1, 6, 2, 6, 0, T1'Access);
+         user_level_scheduler.new_user_level_task_periodic (id2, 10, 4, 10, 0, T2'Access);
+         user_level_scheduler.new_user_level_task_periodic (id3, 12, 3, 12, 0, T3'Access);
          user_level_scheduler.new_user_level_task_periodic (id4, 15, 4, 15, 0, T4'Access);
 
       when '3' =>
