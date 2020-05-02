@@ -1,6 +1,7 @@
 with user_level_schedulers;   use user_level_schedulers;
 with Text_IO;                 use Text_IO;
 with random_number_generator; use random_number_generator;
+with Ada.Numerics.Elementary_Functions;
 
 package body schedulers is
    
@@ -75,7 +76,7 @@ package body schedulers is
                Put_Line ("Task" & Integer'Image (i) & " is released at time "
                   & Integer'Image (user_level_scheduler.get_current_time));
                user_level_scheduler.set_task_status (i, task_ready);
-               user_level_scheduler.set_task_deadline (i, user_level_scheduler.get_current_time + a_tcb.deadline);
+               user_level_scheduler.set_task_deadline (i, user_level_scheduler.get_current_time + a_tcb.period);
             end if;
          end loop;
 
@@ -196,6 +197,7 @@ package body schedulers is
    procedure maximum_urgency_first_schedule (duration_in_time_unit : Integer) is
       a_tcb                : tcb;
       current_critical_set : Integer := 0;
+      max_exponent         : Integer := 0;
       no_ready_task        : Boolean;
       elected_task         : tcb;
       elected_task_index   : Integer;
@@ -242,8 +244,13 @@ package body schedulers is
 
       end loop;
 
+      -- Seeks the size of exponent of the largest dynamic_priority
+      max_exponent := -1;
       for i in 1 .. user_level_scheduler.get_number_of_task loop
          a_tcb := user_level_scheduler.get_tcb (i);
+         if (Integer(Ada.Numerics.Elementary_Functions.Log(Float(a_tcb.dynamic_priority), 2.0)) + 1) > max_exponent then
+            max_exponent := Integer(Ada.Numerics.Elementary_Functions.Log(Float(a_tcb.dynamic_priority), 2.0)) + 1;
+         end if;
       end loop;
 
       -- Loop on tcbs, and select tasks which are ready and which have smallest urgencies
@@ -256,10 +263,11 @@ package body schedulers is
             a_tcb := user_level_scheduler.get_tcb (i);
             if (a_tcb.status = task_ready) then
                no_ready_task := False;
-               urgency := (a_tcb.criticality * 2**8) + (a_tcb.dynamic_priority * 2**4) + a_tcb.user_priority;
+               urgency := (a_tcb.criticality * 2**(max_exponent + 4)) + (a_tcb.dynamic_priority * 2**4) + a_tcb.user_priority;
                if urgency < smallest_urgency then
-                  smallest_urgency := urgency;
-                  elected_task     := a_tcb;
+                  smallest_urgency   := urgency;
+                  elected_task       := a_tcb;
+                  elected_task_index := i;
                end if;
             end if;
          end loop;
@@ -295,17 +303,25 @@ package body schedulers is
                Put_Line ("Task" & Integer'Image (i) & " is released at time "
                   & Integer'Image (user_level_scheduler.get_current_time));
                user_level_scheduler.set_task_status (i, task_ready);
-               user_level_scheduler.set_task_deadline (i, user_level_scheduler.get_current_time + a_tcb.deadline);
+               user_level_scheduler.set_task_deadline (i, user_level_scheduler.get_current_time + a_tcb.period);
             end if;
+         end loop;
+
+         for i in 1 .. user_level_scheduler.get_number_of_task loop
+            a_tcb := user_level_scheduler.get_tcb (i);
 
             -- Update tasks dynamic priority
-            Put_Line ("Task" & Integer'Image (i) & " executed capacity : "
-                  & Integer'Image (a_tcb.executed_capacity) & " at time " & Integer'Image (user_level_scheduler.get_current_time));
             user_level_scheduler.set_task_dynamic_priority (i, a_tcb.deadline - user_level_scheduler.get_current_time - a_tcb.executed_capacity);
 
          end loop;
 
       end loop;
+      New_Line;
+      if schedulable then
+         Put_Line ("The simulation is schedulable");
+      else
+         Put_Line ("The simulation is not schedulable");
+      end if;
 
    exception
       when Task_not_periodic =>

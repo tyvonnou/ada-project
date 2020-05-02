@@ -1,6 +1,6 @@
 package my_subprograms is
 
-   id1, id2, id3, ida1, ida2, ids1 : Integer;
+   id1, id2, id3, id4, ida1, ida2, ids1 : Integer;
 
    -- Fonctions des tâches.
    -- Pour cette simulation, le rôle de chaque tâche est simplement une fonction d'affichage
@@ -10,6 +10,7 @@ package my_subprograms is
    procedure T1;
    procedure T2;
    procedure T3;
+   procedure T4;
 
    -- Tâches apériodiques
    procedure TA1;

@@ -9,6 +9,7 @@ package user_level_schedulers is
    type task_status is (task_ready, task_pended);
 
    subtype Percent is Integer range 0 .. 100;
+   subtype Priority is Integer range 0 .. 15;
 
    type tcb is record
       -- La tâche 
@@ -50,9 +51,9 @@ package user_level_schedulers is
       -- (exclusif à l'ordonnancement MUF)
       dynamic_priority : Integer;
 
-      -- Priorité définie par l'utilisateur. Plus la priorité est basse,
-      -- plus elle est prioritaire (exclusif à l'ordonnancement MUF)
-      user_priority : Natural;
+      -- Priorité définie par l'utilisateur, de 0 à 15. Plus la priorité
+      -- est basse, plus elle est prioritaire (exclusif à l'ordonnancement MUF)
+      user_priority : Priority;
 
    end record;
 
@@ -69,7 +70,7 @@ package user_level_schedulers is
          period        : in Positive;
          capacity      : in Positive;
          deadline      : in Positive;
-         user_priority : in Natural;
+         user_priority : in Priority;
          subprogram    : in run_subprogram);
       
       -- Création d'une tâche apériodique

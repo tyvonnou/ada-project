@@ -9,7 +9,7 @@ package body user_level_schedulers is
          period        : in Positive;
          capacity      : in Positive;
          deadline      : in Positive;
-         user_priority : in Natural;
+         user_priority : in Priority;
          subprogram    : in run_subprogram)
       is
          a_tcb : tcb;  
